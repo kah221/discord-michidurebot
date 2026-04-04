@@ -69,6 +69,17 @@
 仕様
 結果は実行者にだけ表示されます
 ```
+## 【Bot稼働に必要な権限】
+Bot管理ページ Developer Portal の OAuth2 タブで指定する．このBotが正常に動作するために必要な権限は次の通り．(招待URL作成時に付与する)
+- Scope
+	- bot
+	- applications.commands
+- Bot permissions
+	- Connect　←VC接続
+	- Move Members　←VCで対象ユーザを移動(切断)させるため
+	- Speak　←VCで音声を再生する際に必要
+
+<img src="./img_260405_051657.png" style="min-width:400px; max-width:550px">
 
 ## 【Botの常時稼働】
 - 自宅のミニPC(OS: Linux)に .py ファイルと，DiscordBotのトークンや，DiscordのチャンネルID，ユーザIDを記述した .env ファイルを配置
