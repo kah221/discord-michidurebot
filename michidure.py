@@ -1,4 +1,5 @@
 # 260404_2107
+# 260406_0058
 
 import discord
 from discord import app_commands # スラッシュコマンドの実装に必要
@@ -51,6 +52,31 @@ data_json = "data.json"
 
 # 道連れカウント
 count_json = "drag_count.json"
+
+# 退出BGM, 全てノーマライズで-15dBにそろえた
+wav_files = [
+    # fnaf
+    "leaving-music-long-15dB.wav", # fnafロング（絶望）
+    "leaving-music-15dB.wav",      # fnafショート
+    # 蛍の光
+    "9s.wav",                      # 最速
+    "13s.wav",                     # 盛り上がり前
+    "20s.wav",                     # 途中終了
+    "27s.wav",                     # フル
+    "42s.wav"                      # 魔改造Ver.
+]
+# 抽選の重み，パーセント単位とする
+weights = [
+    # fnafだけで50%
+    20, # fnaf-long
+    30, # fnaf-short
+    # 蛍の光で50%
+    10, # hotaru-9s
+    10, # hotaru-13s
+    10, # hotaru-20s
+    15, # hotaru-27s
+     5  # hotaru-42s
+]
 
 # ------------------------------
 # ↑ 変数定義
@@ -173,11 +199,8 @@ async def check_disconnect_time():
             # 音声再生処理
             # ------------------------------
             try:
-                # 音声のロングとショートバージョンを確率で決定(80%の確率でショート)
-                if random.random() < 0.2:
-                    chosen_file = "leaving-music-long-15dB.wav" # 20％の確率でロングとし絶望させる
-                else:
-                    chosen_file = "leaving-music-15dB.wav"
+                # 音声を抽選
+                chosen_file = random.choices(wav_files, weights=weights, k=1)[0]
 
                 audio_source = discord.FFmpegPCMAudio(chosen_file, options='-vn')# wavファイル読み込み(安定化のオプション付きで)
                 vc_client.play(audio_source)
@@ -258,7 +281,7 @@ async def setexittime(interaction: discord.Interaction, hour: int, minute: int, 
         return
 
     # コマンド受付を知らせる
-    await interaction.response.defer(thinking=True, ephemeral=bool(isshow)) # 以降, interaction.followupを使う
+    await interaction.response.defer(thinking=True, ephemeral=(isshow is False)) # 以降, interaction.followupを使う
 
     # バリデーション
     if not (0 <= hour <= 23) or not (0 <= minute <= 59):
@@ -299,7 +322,7 @@ async def clearexittime(interaction: discord.Interaction, isshow: bool|None):
         return
 
     # コマンド受付を知らせる
-    await interaction.response.defer(thinking=True, ephemeral=bool(isshow)) # 以降, interaction.followupを使う
+    await interaction.response.defer(thinking=True, ephemeral=(isshow is False)) # 以降, interaction.followupを使う
 
     schedules = load_exit_time_json()
     user_id_str = str(interaction.user.id)
@@ -322,7 +345,7 @@ async def checkexittime(interaction: discord.Interaction, isshow: bool|None):
         return
 
     # コマンド受付を知らせる
-    await interaction.response.defer(thinking=True, ephemeral=bool(isshow)) # 以降, interaction.followupを使う
+    await interaction.response.defer(thinking=True, ephemeral=(isshow is False)) # 以降, interaction.followupを使う
 
     schedules = load_exit_time_json()
     user_id_str = str(interaction.user.id)
@@ -337,38 +360,37 @@ async def checkexittime(interaction: discord.Interaction, isshow: bool|None):
 
 # コマンド実行ユーザが道連れにされた回数を確認するコマンド
 @tree.command(name="myexitcount", description="自分が今まで道連れにされた回数を確認する")
-async def myexitcount(interaction: discord.Interaction):
+async def myexitcount(interaction: discord.Interaction, isshow: bool|None):
     # コマンド受付を知らせる
-    await interaction.response.defer(thinking=True, ephemeral=True) # 以降, interaction.followupを使う
+    await interaction.response.defer(thinking=True, ephemeral=(isshow is False)) # 以降, interaction.followupを使う
 
     drag_data = load_drag_count()
     user_id_str = str(interaction.user.id)
 
     if user_id_str in drag_data:
         count = drag_data[user_id_str]["count"]
-        # ephemeral=True で、結果はコマンドを打った本人にしか見えません
-        await interaction.followup.send(f"```あなたのこれまでの道連れ回数: {count} 回```", ephemeral=True)
+        await interaction.followup.send(f"```{interaction.user.display_name} のこれまでの道連れ回数: {count} 回```")
     else:
-        await interaction.followup.send("```あなたのこれまでの道連れ回数: 0 回```", ephemeral=True)
+        await interaction.followup.send(f"```{interaction.user.display_name} のこれまでの道連れ回数: 0 回```")
 
 
 # 【管理者用】全員の道連れ回数を確認するコマンド
-@tree.command(name="allexitcount", description="【管理者用】全ユーザーの道連れ被害状況を確認します")
-async def allexitcount(interaction: discord.Interaction, matchword: str):
+@tree.command(name="allexitcount", description="【管理者用】全ユーザーの道連れ被害状況を確認する")
+async def allexitcount(interaction: discord.Interaction, matchword: str, isshow: bool|None):
     # コマンド受付を知らせる
-    await interaction.response.defer(thinking=True, ephemeral=True) # 以降, interaction.followupを使う
+    await interaction.response.defer(thinking=True, ephemeral=(isshow is False)) # 以降, interaction.followupを使う
 
     # 合言葉
     MATCHWORD = "fire-thunder"
 
     # 合言葉の判定
     if matchword != MATCHWORD:
-        await interaction.followup.send("```合言葉不一致```", ephemeral=True)
+        await interaction.followup.send("```合言葉不一致```")
         return
 
     drag_data = load_drag_count()
     if not drag_data:
-        await interaction.followup.send("```まだ誰も道連れにされていません```", ephemeral=True)
+        await interaction.followup.send("```まだ誰も道連れにされていません```")
         return
 
     # 回数が多い順（降順）に並び替える
@@ -379,7 +401,7 @@ async def allexitcount(interaction: discord.Interaction, matchword: str):
     for uid, info in sorted_data:
         result_text += f"・{info['name']}: {info['count']} 回\n"
 
-    await interaction.followup.send(f"```{result_text}```", ephemeral=True)
+    await interaction.followup.send(f"```{result_text}```")
 
 # ------------------------------
 # ↑ スラッシュコマンド
