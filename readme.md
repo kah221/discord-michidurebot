@@ -55,11 +55,9 @@
 ```
 → コマンド実行者の，これまでのこのBotによる強制退出が実行された回数を確認する
 
-引数
-- なし
 
-仕様
-結果は実行者にだけ表示されます
+引数
+- isshow: 表示設定(任意)  ← Falseなら自分だけに見えるメッセージになる．デフォルトでTrue
 ```
 ### /allexitcount コマンド 【管理者用】
 ```
@@ -67,9 +65,10 @@
 
 引数
 - matchword: 合言葉
+- isshow: 表示設定(任意)  ← Falseなら自分だけに見えるメッセージになる．デフォルトでTrue
 
 仕様
-結果は実行者にだけ表示されます
+使用には合言葉が必要ですが，スクリプトに直で書いています．
 ```
 ## 【Bot稼働に必要な権限】
 Bot管理ページ Developer Portal の OAuth2 タブで指定する．このBotが正常に動作するために必要な権限は次の通り．(招待URL作成時に付与する)
@@ -81,7 +80,7 @@ Bot管理ページ Developer Portal の OAuth2 タブで指定する．このBot
 	- Move Members　←VCで対象ユーザを移動(切断)させるため
 	- Speak　←VCで音声を再生する際に必要
 
-<img src="./img_260405_051657.png" style="min-width:400px; max-width:550px">
+<img src="img_260405_051657.png" style="min-width:400px; max-width:550px">
 
 ## 【Botの常時稼働】
 - 自宅のミニPC(OS: Linux)に .py ファイルと，DiscordBotのトークンや，DiscordのチャンネルID，ユーザIDを記述した .env ファイルを配置
